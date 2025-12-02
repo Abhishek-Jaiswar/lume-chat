@@ -7,6 +7,7 @@ type TCookie = {
   res: Response;
   userId: string;
 };
+
 export const setJWTAuthCookie = ({ res, userId }: TCookie) => {
   const payload = { userId };
   const expiresIn = Env.JWT_EXPIRES_IN as Time;
@@ -24,5 +25,5 @@ export const setJWTAuthCookie = ({ res, userId }: TCookie) => {
 };
 
 export const clearJwtAuthCookie = (res: Response) => {
-  res.clearCookie("accessToken", { path: "/" });
+  return res.clearCookie("accessToken", { path: "/" });
 };
