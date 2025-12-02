@@ -3,7 +3,7 @@ import { asyncHandler } from "../middlewares/asyncHandler.middleware";
 import { loginSchema, registerSchema } from "../validators/auth.validator";
 import { clearJwtAuthCookie, setJWTAuthCookie } from "../utils/cookie";
 import { HTTPSTATUS } from "../config/http.config";
-import { loginService, registerService } from "./auth.service";
+import { loginService, registerService } from "../services/auth.service";
 
 export const registerController = asyncHandler(
   async (req: Request, res: Response) => {

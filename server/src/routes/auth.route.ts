@@ -4,7 +4,7 @@ import {
   loginController,
   logoutController,
   registerController,
-} from "../services/auth.controller";
+} from "../controllers/auth.controller";
 import { passportAuthenticateJwt } from "../config/passport.config";
 
 const authRoutes = Router()
