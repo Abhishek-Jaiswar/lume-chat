@@ -1,14 +1,15 @@
 import { z } from "zod";
 
 export const createChatSchema = z.object({
-  participantId: z
-    .string()
-    .trim()
-    .min(1, { error: "Participant id is required" })
-    .optional(),
+  participantId: z.string().optional(),
   isGroup: z.boolean().optional(),
-  participants: z.array(z.string().trim().min(1)).optional(),
-  groupName: z.string().trim().min(1).optional,
+  participants: z.array(z.string()).optional(),
+  groupName: z.string().optional(),
 });
 
-export type createChatSchemaTypes = z.infer<typeof createChatSchema>;
+export const chatIdSchema = z.object({
+  id: z.string(),
+});
+
+export type CreateChatBody = z.infer<typeof createChatSchema>;
+export type ChatIdSchemaType = z.infer<typeof chatIdSchema>;

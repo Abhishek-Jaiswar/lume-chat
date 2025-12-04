@@ -1,11 +1,11 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types, Model } from "mongoose";
 
 export interface ChatDocument extends Document {
-  participants: mongoose.Types.ObjectId[];
-  lastMessage: mongoose.Types.ObjectId;
-  isGroup: boolean;
-  groupName: string;
-  createdBy: mongoose.Types.ObjectId;
+  participants: Types.ObjectId[]; 
+  lastMessage: Types.ObjectId | null;
+  isGroup: boolean; 
+  groupName?: string;
+  createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,17 +27,24 @@ const chatSchema = new Schema<ChatDocument>(
     isGroup: {
       type: Boolean,
       default: false,
+      required: true,
     },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
     groupName: {
       type: String,
-      required: true,
+      required: function (this: ChatDocument) {
+        return this.isGroup;
+      },
     },
   },
   { timestamps: true }
 );
 
-export const Chat = mongoose.model<ChatDocument>("Chat", chatSchema);
+export const Chat: Model<ChatDocument> = mongoose.model<ChatDocument>(
+  "Chat",
+  chatSchema
+);
