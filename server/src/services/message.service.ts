@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+import cloudinary from "../config/cloudinary.config";
 import { Chat } from "../models/chat.model";
 import { Message } from "../models/message.model";
 import { BadRequestException, NotFoundException } from "../utils/app-error";
@@ -29,34 +31,35 @@ export const sendMessageService = async (
     });
 
     if (!replyMessage) throw new NotFoundException("Reply message not found");
-
-    let imageUrl;
-    if (imageUrl) {
-      //Upload Image to cld
-    }
-
-    const newMessage = await Message.create({
-      chatId,
-      sender: userId,
-      content,
-      image: imageUrl,
-      replyTo: replyToId,
-    });
-
-    await newMessage.populate([
-      { path: "sender", select: "name avatar" },
-      {
-        path: "replyTo",
-        select: "content image sender",
-        populate: {
-          path: "sender",
-          select: "name avatar",
-        },
-      },
-    ]);
-
-    // websocket
-
-    return {message: newMessage, chatId}
   }
+
+  let imageUrl;
+  if (image) {
+    //Upload Image to cld
+    const uploadRes = await cloudinary.uploader.upload(image);
+    imageUrl = uploadRes.secure_url;
+  }
+
+  const newMessage = await Message.create({
+    chatId,
+    sender: userId,
+    content,
+    image: imageUrl,
+    replyTo: replyToId,
+  });
+
+  await newMessage.populate([
+    { path: "sender", select: "name avatar" },
+    {
+      path: "replyTo",
+      select: "content image sender",
+      populate: {
+        path: "sender",
+        select: "name avatar",
+      },
+    },
+  ]);
+
+  // websocket
+  return { userMessages: newMessage, chat };
 };
