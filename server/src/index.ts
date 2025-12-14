@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import passport from "passport";
 import cookieParser from "cookie-parser";
+import http from 'http'
 import { Env } from "./config/env.config";
 import { Request, Response } from "express";
 import { asyncHandler } from "./middlewares/asyncHandler.middleware";
@@ -11,8 +12,12 @@ import { errorHandler } from "./middlewares/errorHandler.middleware";
 import { connectToDatabase } from "./config/database.config";
 import "./config/passport.config";
 import router from "./routes";
+import { initilizeSocket } from "./lib/socket";
 
 const app = express();
+const server = http.createServer(app)
+
+initilizeSocket(server)
 
 app.use(express.json({limit: "10mb"}));
 app.use(cookieParser());
@@ -40,7 +45,7 @@ app.use('/api', router)
 
 app.use(errorHandler);
 
-app.listen(Env.PORT, async () => {
+server.listen(Env.PORT, async () => {
   await connectToDatabase();
   console.log(`Server is listening on port: http://localhost:${Env.PORT}`);
 });

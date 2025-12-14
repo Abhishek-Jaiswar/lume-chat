@@ -4,6 +4,7 @@ import { User } from "../models/user.model";
 import { BadRequestException, NotFoundException } from "../utils/app-error";
 import type { CreateChatBody } from "../validators/chat.validator";
 import { Message } from "../models/message.model";
+import { emitNewChatToParticipants } from "../lib/socket";
 
 export const createChatService = async (
   userId: string,
@@ -26,6 +27,13 @@ export const createChatService = async (
       groupName,
       createdBy: new Types.ObjectId(userId),
     });
+
+    const populatedChat = await Chat?.populate("participants", "name, avatar");
+    const participantIdString = populatedChat?.participants?.map((p) => {
+      return p.id?.toString();
+    });
+
+    emitNewChatToParticipants(participantIdString, populatedChat);
 
     return chat;
   }
@@ -109,4 +117,19 @@ export const getSingleChatService = async (chatId: string, userId: string) => {
     chat,
     messages,
   };
+};
+
+export const validateChatParticipants = async (
+  chatId: string,
+  userId: string
+) => {
+  const chat = await Chat.findOne({
+    _id: chatId,
+    participants: {
+      $in: [userId],
+    },
+  });
+
+  if (!chat) throw new BadRequestException("User not a participant in chat.");
+  return chat;
 };

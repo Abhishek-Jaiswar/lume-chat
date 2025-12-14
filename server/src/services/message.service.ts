@@ -1,8 +1,12 @@
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import cloudinary from "../config/cloudinary.config";
 import { Chat } from "../models/chat.model";
 import { Message } from "../models/message.model";
 import { BadRequestException, NotFoundException } from "../utils/app-error";
+import {
+  emitLastMessageToParticipants,
+  emitNewChatMessageToChatRoom,
+} from "../lib/socket";
 
 export const sendMessageService = async (
   userId: string,
@@ -60,6 +64,16 @@ export const sendMessageService = async (
     },
   ]);
 
-  // websocket
+  chat.lastMessage = newMessage._id as mongoose.Types.ObjectId;
+  await chat.save();
+
+  // websocket emit the new message to the chat room
+  emitNewChatMessageToChatRoom(userId, chatId, newMessage);
+
+  // websocket emit the lastMessage to members (personal room user)
+
+  const allParticipantIds = chat.participants.map((id) => id.toString());
+  emitLastMessageToParticipants(allParticipantIds, chatId, newMessage);
+
   return { userMessages: newMessage, chat };
 };
