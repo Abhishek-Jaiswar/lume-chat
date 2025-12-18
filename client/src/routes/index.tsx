@@ -15,7 +15,7 @@ const AppRoutes = () => {
         </Route>
       </Route>
 
-      <Route path="/" element={<RouteGuard requiredAuth={false} />}>
+      <Route path="/" element={<RouteGuard requiredAuth={true} />}>
         <Route element={<AppLayout />}>
           {protectedRoutePaths?.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />

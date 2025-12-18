@@ -14,9 +14,11 @@ interface ISocketState {
 export const useSocket = create<ISocketState>()((set, get) => ({
   socket: null,
   onlineUsers: [],
+
   connectSocket: () => {
     const { socket } = get();
-    if (!socket?.connected) return;
+
+    if (socket?.connected) return;
 
     const newSocket = io(BASE_URL, {
       withCredentials: true,
@@ -25,21 +27,25 @@ export const useSocket = create<ISocketState>()((set, get) => ({
 
     set({ socket: newSocket });
 
-    newSocket.on("connected", () => {
-      console.log("Socket is connected: ", newSocket.id);
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
     });
 
-    newSocket.on("online:users", (userIds) => {
-      console.log("Online users: ", userIds);
-
+    newSocket.on("online:users", (userIds: string[]) => {
+      console.log("Online users:", userIds);
       set({ onlineUsers: userIds });
     });
+
+    newSocket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
   },
+
   disconnectSocket: () => {
     const { socket } = get();
     if (socket) {
       socket.disconnect();
-      set({ socket: null });
+      set({ socket: null, onlineUsers: [] });
     }
   },
 }));

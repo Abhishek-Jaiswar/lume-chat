@@ -5,7 +5,7 @@ import { LoginSchemaType, RegisterSchemaType } from "../validators/auth.validato
 export const registerService = async (body: RegisterSchemaType) => {
   const { email } = body;
   const existingUser = await User.findOne({ email });
-  if (existingUser) throw new UnautorizedException("User allready exists.");
+  if (existingUser) throw new Error("User allready exists.");
 
   const newUser = await User.create({
     ...body,
