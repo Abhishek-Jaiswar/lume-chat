@@ -1,4 +1,7 @@
+import ChatBody from "@/components/chats/chat-body";
+import ChatFooter from "@/components/chats/chat-footer";
 import ChatHeader from "@/components/chats/chat-header";
+import EmptyState from "@/components/empty-state";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/hooks/use-auth";
 import { useChat } from "@/hooks/use-chat";
@@ -54,6 +57,28 @@ const SignleChat = () => {
     <div className="h-full">
       <div className="relative h-screen flex flex-col overflow-hidden">
         <ChatHeader chat={chat} currentUserId={currentUserId} />
+        {messages.length === 0 ? (
+          <EmptyState
+            title="Start a conversation"
+            description="No messages yet. send the first message"
+          />
+        ) : (
+          <ChatBody
+            chatId={chatId}
+            messages={messages}
+            onReply={setReplyTo}
+            isGroup={chat?.isGroup}
+          />
+        )}
+
+        {chatId && (
+          <ChatFooter
+            replyTo={replyTo}
+            chatId={chatId}
+            currentUserId={currentUserId}
+            onCancelReply={() => setReplyTo(null)}
+          />
+        )}
       </div>
     </div>
   );

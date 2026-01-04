@@ -17,6 +17,7 @@ const ChatHeader = ({ chat, currentUserId }: Props) => {
     chat,
     currentUserId
   );
+
   return (
     <div className="sticky top-0 flex items-center gap-5 border-b border-border bg-card px-2 z-50">
       <div className=" h-14 px-4 flex items-center">
@@ -36,7 +37,7 @@ const ChatHeader = ({ chat, currentUserId }: Props) => {
         <div className="ml-2">
           <h5 className="font-semibold">{name}</h5>
           <p
-            className={`text-sm ${
+            className={`text-xs ${
               isOnline ? "text-green-500" : "text-muted-foreground"
             }`}
           >
@@ -45,7 +46,9 @@ const ChatHeader = ({ chat, currentUserId }: Props) => {
         </div>
       </div>
 
-      <div className="flex-1 py-4 h-full text-center cursor-pointer border-primary font-medium text-primary "></div>
+      <div className="flex-1 py-4 h-full text-center cursor-pointer border-primary font-medium text-primary ">
+        Chat
+      </div>
     </div>
   );
 };

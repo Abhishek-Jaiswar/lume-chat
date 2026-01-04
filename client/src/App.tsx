@@ -20,7 +20,7 @@ const App = () => {
     }
   }, [isAuth, isAuthStatus]);
 
-  if (isAuthStatusLoading && !user && !isAuth) {
+  if (isAuthStatusLoading && !user) {
     return (
       <div className="">
         <Logo showText={false} />
