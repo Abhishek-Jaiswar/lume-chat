@@ -1,6 +1,13 @@
 import { User } from "../models/user.model";
-import { NotFoundException, UnautorizedException } from "../utils/app-error";
-import { LoginSchemaType, RegisterSchemaType } from "../validators/auth.validator";
+import {
+  InvalidCredentials,
+  NotFoundException,
+  UnautorizedException,
+} from "../utils/app-error";
+import {
+  LoginSchemaType,
+  RegisterSchemaType,
+} from "../validators/auth.validator";
 
 export const registerService = async (body: RegisterSchemaType) => {
   const { email } = body;
@@ -14,7 +21,6 @@ export const registerService = async (body: RegisterSchemaType) => {
   return newUser;
 };
 
-
 export const loginService = async (body: LoginSchemaType) => {
   const { email, password } = body;
 
@@ -23,9 +29,8 @@ export const loginService = async (body: LoginSchemaType) => {
 
   const isPasswordValid = await user.comparePassword(password);
   if (!isPasswordValid) {
-    throw new UnautorizedException("Invalid credentials");
+    throw new InvalidCredentials("Invalid credentials");
   }
 
   return user;
 };
-  

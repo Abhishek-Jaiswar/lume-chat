@@ -5,6 +5,7 @@ export type ChatType = {
   lastMessage: MessageType;
   participants: TUser[];
   isGroup: boolean;
+  groupName: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -18,7 +19,7 @@ export type MessageType = {
   replyTo: MessageType | null;
   chatId: string;
   createdAt: string;
-  updated: string;
+  updatedAt: string;
 
   status?: string;
 };

@@ -38,7 +38,9 @@ const AvatarWithBadge = ({
         </AvatarFallback>
       </Avatar>
       {isOnline && !isGroup && (
-        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-border bg-green-600"></span>
+        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-border bg-green-600">
+          
+        </span>
       )}
     </div>
   );

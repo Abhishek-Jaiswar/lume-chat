@@ -10,6 +10,20 @@ interface IAuthenticatedSocket extends Socket {
 
 let io: Server | null = null;
 
+const parseCookies = (cookieString: string): Record<string, string> => {
+  const cookies: Record<string, string> = {};
+  if (!cookieString) return cookies;
+
+  cookieString.split(";").forEach((cookie) => {
+    const [name, ...rest] = cookie.trim().split("=");
+    if (name) {
+      cookies[name.trim()] = rest.join("=").trim();
+    }
+  });
+
+  return cookies;
+};
+
 const onlineUser = new Map<string, string>();
 
 export const initilizeSocket = (HTTPServer: HTTPServer) => {
@@ -26,7 +40,9 @@ export const initilizeSocket = (HTTPServer: HTTPServer) => {
       const rawCookie = socket.handshake.headers.cookie;
       if (!rawCookie) return next(new Error("Unauthorized"));
 
-      const token = rawCookie?.split("=")?.[1]?.trim();
+      const cookies = parseCookies(rawCookie);
+      const token = cookies.accessToken;
+
       if (!token) return next(new Error("Token not provided, Unauthorized"));
 
       const decodedToken = jwt.verify(token, Env.JWT_SECRET) as {

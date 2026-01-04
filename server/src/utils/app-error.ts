@@ -60,6 +60,15 @@ export class UnautorizedException extends AppError {
   }
 }
 
+export class InvalidCredentials extends AppError {
+  constructor(
+    message: string = "Invalid Credentials",
+    success: boolean = false
+  ) {
+    super(message, HTTPSTATUS.BAD_REQUEST, ErrorCodes.ERR_BAD_REQUEST, success);
+  }
+}
+
 export class NotFoundException extends AppError {
   constructor(
     message: string = "Resource not found",

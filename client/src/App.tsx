@@ -5,8 +5,6 @@ import Logo from "./components/logo";
 import { Spinner } from "./components/ui/spinner";
 import { useLocation } from "react-router-dom";
 import { isAuthRoute } from "./routes/routes";
-import { useSocket } from "./hooks/use-socket";
-
 const App = () => {
   const { pathname } = useLocation();
   const { user, isAuthStatus, isAuthStatusLoading } = useAuth();
@@ -17,8 +15,10 @@ const App = () => {
   // console.log("@@Online users: ", onlineUsers);
 
   useEffect(() => {
-    isAuthStatus();
-  }, [isAuthStatus]);
+    if (!isAuth) {
+      isAuthStatus();
+    }
+  }, [isAuth, isAuthStatus]);
 
   if (isAuthStatusLoading && !user && !isAuth) {
     return (

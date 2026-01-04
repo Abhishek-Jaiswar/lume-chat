@@ -28,14 +28,15 @@ export const createChatService = async (
       createdBy: new Types.ObjectId(userId),
     });
 
-    const populatedChat = await Chat?.populate("participants", "name, avatar");
-    const participantIdString = populatedChat?.participants?.map((p) => {
-      return p.id?.toString();
+    // Populate participants with name and avatar
+    const populatedChat = await chat.populate("participants", "name avatar");
+    const participantIdString = populatedChat.participants.map((p: any) => {
+      return p._id.toString();
     });
 
     emitNewChatToParticipants(participantIdString, populatedChat);
 
-    return chat;
+    return populatedChat;
   }
 
   if (participantId) {
@@ -63,7 +64,13 @@ export const createChatService = async (
       createdBy: new Types.ObjectId(userId),
     });
 
-    return chat;
+    // Populate participants with name and avatar
+    const populatedChat = await Chat.findById(chat._id).populate(
+      "participants",
+      "name avatar"
+    );
+
+    return populatedChat;
   }
 
   throw new Error("Invalid chat creation payload");

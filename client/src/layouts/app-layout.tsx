@@ -1,5 +1,5 @@
 import AppWrapper from "@/components/app-wrapper";
-import ChatList from "@/components/chat-list";
+import ChatList from "@/components/chats/chat-list";
 import React from "react";
 import { Outlet } from "react-router-dom";
 
