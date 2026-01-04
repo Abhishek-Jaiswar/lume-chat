@@ -5,17 +5,59 @@ import ChatListItem from "./chat-list-item";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import ChatListHeader from "./chat-list-header";
+import { useSocket } from "@/hooks/use-socket";
+import type { ChatType, MessageType } from "@/types/chat-types";
 
 const ChatList = () => {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const currentUserId = user?._id || null;
   const navigate = useNavigate();
-  const { fetchChats, chats, isChatLoading } = useChat();
+  const {
+    fetchChats,
+    chats,
+    isChatLoading,
+    addNewChat,
+    updateChatLastMessage,
+  } = useChat();
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchChats();
   }, [fetchChats]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewChat = (newChat: ChatType) => {
+      console.log("Recieved new chat: ", newChat);
+      addNewChat(newChat);
+    };
+
+    socket.on("chat:new", handleNewChat);
+
+    return () => {
+      socket.off("chat:new", handleNewChat);
+    };
+  }, [addNewChat, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleChatUpdate = (data: {
+      chatId: string;
+      lastMessage: MessageType;
+    }) => {
+      console.log("Recieved new chat: ", data.lastMessage);
+      updateChatLastMessage(data.chatId, data.lastMessage);
+    };
+
+    socket.on("chat:update", handleChatUpdate);
+
+    return () => {
+      socket.off("chat:update", handleChatUpdate);
+    };
+  }, [socket, updateChatLastMessage]);
 
   const filteredChat = useMemo(() => {
     if (!searchQuery) return chats || [];
