@@ -1,13 +1,14 @@
 import mongoose, { Document, Schema, Types, Model } from "mongoose";
 
 export interface ChatDocument extends Document {
-  participants: Types.ObjectId[]; 
+  participants: Types.ObjectId[];
   lastMessage: Types.ObjectId | null;
-  isGroup: boolean; 
+  isGroup: boolean;
   groupName?: string;
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  isAiChat: boolean;
 }
 
 const chatSchema = new Schema<ChatDocument>(
@@ -40,9 +41,26 @@ const chatSchema = new Schema<ChatDocument>(
         return this.isGroup;
       },
     },
+    isAiChat: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
+
+chatSchema.pre("save", async function () {
+  if (this.isNew) {
+    const User = mongoose.model("User");
+    const participants = await User.find({
+      _id: { $in: this.participants },
+      isAi: true,
+    });
+    if (participants.length > 0) {
+      this.isAiChat = true;
+    }
+  }
+});
 
 export const Chat: Model<ChatDocument> = mongoose.model<ChatDocument>(
   "Chat",

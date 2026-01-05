@@ -29,7 +29,7 @@ export const createChatService = async (
     });
 
     // Populate participants with name and avatar
-    const populatedChat = await chat.populate("participants", "name avatar");
+    const populatedChat = await chat.populate("participants", "name avatar ");
     const participantIdString = populatedChat.participants.map((p: any) => {
       return p._id.toString();
     });
@@ -54,7 +54,7 @@ export const createChatService = async (
         $size: 2,
       },
       isGroup: false,
-    }).populate("participants", "name avatar");
+    }).populate("participants", "name avatar isAi");
 
     if (existingChat) return existingChat;
 
@@ -67,7 +67,7 @@ export const createChatService = async (
     // Populate participants with name and avatar
     const populatedChat = await Chat.findById(chat._id).populate(
       "participants",
-      "name avatar"
+      "name avatar isAi"
     );
 
     return populatedChat;
@@ -82,7 +82,7 @@ export const getUserChatService = async (userId: string) => {
       $in: [userId],
     },
   })
-    .populate("participants", "name avatar")
+    .populate("participants", "name avatar isAi")
     .populate({
       path: "lastMessage",
       populate: {
@@ -101,7 +101,7 @@ export const getSingleChatService = async (chatId: string, userId: string) => {
     participants: {
       $in: [userId],
     },
-  }).populate("participants", "name avatar");
+  }).populate("participants", "name avatar isAi");
 
   if (!chat)
     throw new BadRequestException(
@@ -109,13 +109,13 @@ export const getSingleChatService = async (chatId: string, userId: string) => {
     );
 
   const messages = await Message.find({ chatId })
-    .populate("sender", "name avatar")
+    .populate("sender", "name avatar isAi")
     .populate({
       path: "replyTo",
       select: "content image sender",
       populate: {
         path: "sender",
-        select: "name avatar",
+        select: "name avatar isAi",
       },
     })
     .sort({ createdAt: 1 });

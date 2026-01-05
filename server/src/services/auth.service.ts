@@ -15,7 +15,10 @@ export const registerService = async (body: RegisterSchemaType) => {
   if (existingUser) throw new Error("User allready exists.");
 
   const newUser = await User.create({
-    ...body,
+    name: body.name,
+    email: body.email,
+    password: body.password,
+    avatar: body.avatar || null,
   });
 
   return newUser;

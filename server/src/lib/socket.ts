@@ -159,3 +159,50 @@ export const emitLastMessageToParticipants = (
     io.to(`user:${participantId}`).emit("chat:update", payload);
   }
 };
+
+export const emitUserTypingInChat = (
+  chatId: string,
+  userId: string,
+  isTyping: boolean
+) => {
+  const io = getIO();
+  const payload = { userId, isTyping };
+  io.to(`chat:${chatId}`).emit("chat:typing", payload);
+};
+
+export const emitChatAI = ({
+  chatId,
+  chunk,
+  sender,
+  done,
+  message,
+}: {
+  chatId: string;
+  chunk: string | null;
+  sender: any;
+  done: boolean;
+  message: any;
+}) => {
+  const io = getIO();
+  if (chunk?.trim()) {
+    io.to(`chat:${chatId}`).emit(`chat:ai`, {
+      chatId,
+      chunk,
+      sender,
+      done,
+      message: null,
+    });
+    return;
+  }
+
+  if (done) {
+    io.to(`chat:${chatId}`).emit(`chat:ai`, {
+      chatId,
+      chunk: null,
+      sender,
+      done,
+      message,
+    });
+    return;
+  }
+};
