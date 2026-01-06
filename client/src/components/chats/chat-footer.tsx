@@ -15,8 +15,9 @@ import { Spinner } from "../ui/spinner";
 interface Props {
   chatId: string;
   currentUserId: string | null;
-  replyTo: MessageType | null;
+  replyTo?: MessageType | null;
   onCancelReply: () => void;
+  isAiChat: boolean;
 }
 
 const ChatFooter = ({
@@ -24,15 +25,15 @@ const ChatFooter = ({
   currentUserId,
   replyTo,
   onCancelReply,
+  isAiChat,
 }: Props) => {
   const messageSchema = z.object({
     message: z.string().optional(),
   });
 
-  const { sendMessage } = useChat();
+  const { sendMessage, isSendingMsg } = useChat();
 
   const [image, setImage] = useState<string | null>(null);
-  const [isSending, setIsSending] = useState(false);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -77,19 +78,21 @@ const ChatFooter = ({
   };
 
   const onSubmit = async (values: { message?: string }) => {
+    if (isSendingMsg) return;
     if (!values.message?.trim() && !image) {
       toast.error("Please enter a message or select an image");
       return;
     }
 
-    setIsSending(true);
     try {
-      await sendMessage({
+      const payload = {
         chatId,
-        content: values.message,
+        content: values.message?.trim() || undefined,
         image: image || undefined,
-        replyTo: replyTo,
-      });
+        replyTo: replyTo || null,
+      };
+
+      sendMessage(payload, isAiChat);
 
       // Only reset form and clear state on success
       onCancelReply();
@@ -102,16 +105,14 @@ const ChatFooter = ({
     } catch (error) {
       console.error("Failed to send message:", error);
       toast.error("Failed to send message. Please try again.");
-    } finally {
-      setIsSending(false);
     }
   };
 
   return (
     <>
-      <div className="sticky bottom-0 inset-x-0 z-999 bg-card border-t border-border py-4">
-        {image && (
-          <div className="max-w-6xl mx-auto px-8.5 ">
+      <div className="z-50 border-t border-border py-4">
+        {image && !isSendingMsg && (
+          <div className="px-8.5 ">
             <div className="relative w-fit">
               <img
                 src={image}
@@ -124,7 +125,7 @@ const ChatFooter = ({
                 size="icon"
                 className=" absolute top-1 right-1 bg-black/50 text-white rounded-full"
                 onClick={handleRemoveImage}
-                disabled={isSending}
+                disabled={isSendingMsg}
               >
                 <X className="w-3 h-3" />
               </Button>
@@ -134,17 +135,20 @@ const ChatFooter = ({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="max-w-6xl px-8.5 mx-auto flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit(onSubmit)();
+            }}
+            className="px-8.5  flex gap-2"
           >
             <div className="flex items-end gap-1.5">
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                className="rounded-full flex-shrink-0"
+                className="rounded-sm shrink-0"
                 onClick={() => imageInputRef.current?.click()}
-                disabled={isSending}
+                disabled={isSendingMsg}
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
@@ -154,7 +158,7 @@ const ChatFooter = ({
                 accept="image/*"
                 ref={imageInputRef}
                 onChange={handleImageChange}
-                disabled={isSending}
+                disabled={isSendingMsg}
               />
             </div>
 
@@ -169,7 +173,7 @@ const ChatFooter = ({
                     autoComplete="off"
                     placeholder="Type new message"
                     className="bg-background min-h-10 max-h-32 resize-none overflow-hidden"
-                    disabled={isSending}
+                    disabled={isSendingMsg}
                     onChange={handleTextareaChange}
                     onKeyDown={handleKeyDown}
                   />
@@ -180,10 +184,10 @@ const ChatFooter = ({
             <Button
               type="submit"
               size="icon"
-              className="rounded-lg cursor-pointer flex-shrink-0 self-end"
-              disabled={isSending}
+              className="rounded-lg cursor-pointer shrink-0 self-end"
+              disabled={isSendingMsg}
             >
-              {isSending ? (
+              {isSendingMsg ? (
                 <Spinner className="h-3.5 w-3.5" />
               ) : (
                 <Send className="h-3.5 w-3.5" />
@@ -193,7 +197,7 @@ const ChatFooter = ({
         </Form>
       </div>
 
-      {replyTo && (
+      {replyTo && !isSendingMsg && (
         <ChatReplyBar
           replyTo={replyTo}
           currentUserId={currentUserId}

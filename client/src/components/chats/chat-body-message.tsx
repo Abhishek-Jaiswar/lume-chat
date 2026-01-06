@@ -15,6 +15,13 @@ import {
   ImageIcon,
   ExternalLinkIcon,
 } from "lucide-react";
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+  MessageActions,
+  MessageAction,
+} from "../ai-elements/message";
 
 interface Props {
   message: MessageType;
@@ -22,247 +29,203 @@ interface Props {
   isGroup?: boolean;
 }
 
-export const ChatBodyMessage = memo(
-  ({ message, onReply, isGroup = false }: Props) => {
-    const { user } = useAuth();
-    const userId = user?._id || null;
-    const isCurrentUser = message.sender?._id === userId;
-    const [imageLoading, setImageLoading] = useState(true);
-    const [imageError, setImageError] = useState(false);
-    const [showImageModal, setShowImageModal] = useState(false);
+export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
+  const { user } = useAuth();
+  const userId = user?._id || null;
+  const isCurrentUser = message.sender?._id === userId;
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
-    const replySenderName =
-      message.replyTo?.sender?._id === userId
-        ? "You"
-        : message.replyTo?.sender?.name;
+  const replySenderName =
+    message.replyTo?.sender?._id === userId
+      ? "You"
+      : message.replyTo?.sender?.name;
 
-    // Helper function to render message status icon
-    const getMessageStatusIcon = (status?: string) => {
-      switch (status?.toLowerCase()) {
-        case "sent":
-          return <CheckIcon size={12} className="text-muted-foreground" />;
-        case "delivered":
-          return <CheckCheckIcon size={12} className="text-muted-foreground" />;
-        case "read":
-          return <CheckCheckIcon size={12} className="text-blue-500" />;
-        default:
-          return <ClockIcon size={12} className="text-muted-foreground" />;
-      }
-    };
+  // Helper function to render message status icon
+  const getMessageStatusIcon = (status?: string) => {
+    switch (status?.toLowerCase()) {
+      case "sent":
+        return <CheckIcon size={12} className="text-muted-foreground" />;
+      case "delivered":
+        return <CheckCheckIcon size={12} className="text-muted-foreground" />;
+      case "read":
+        return <CheckCheckIcon size={12} className="text-blue-500" />;
+      default:
+        return <ClockIcon size={12} className="text-muted-foreground" />;
+    }
+  };
 
-    // Helper function to detect and render links
-    const renderMessageContent = (content: string) => {
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
-      const parts = content.split(urlRegex);
-
-      return parts.map((part, index) => {
-        if (urlRegex.test(part)) {
-          return (
-            <a
-              key={index}
-              href={part}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:text-blue-600 underline break-all"
-            >
-              {part}
-            </a>
-          );
-        }
-        return part;
-      });
-    };
-
-    const containerClass = cn(
-      "group flex gap-3 py-2 px-4 hover:bg-muted/30 transition-colors",
-      isCurrentUser && "flex-row-reverse"
-    );
-
-    const contentWrapperClass = cn(
-      "max-w-[75%] sm:max-w-[70%] md:max-w-[60%] flex flex-col relative",
-      isCurrentUser && "items-end"
-    );
-
-    const messageClass = cn(
-      "px-4 py-3 text-sm break-words shadow-sm rounded-2xl",
-      isCurrentUser
-        ? "bg-primary text-primary-foreground rounded-br-md"
-        : "bg-muted rounded-bl-md"
-    );
-
-    const replyBoxClass = cn(
-      "mb-2 p-3 text-xs rounded-lg border-l-4 bg-background/80 backdrop-blur-sm",
-      isCurrentUser
-        ? "border-l-primary bg-primary/70"
-        : "border-l-muted-foreground/50 bg-muted/50"
-    );
-    return (
-      <div className={containerClass}>
+  return (
+    <div
+      className={cn(
+        "group flex w-full gap-2 py-3 px-4 hover:bg-muted/5 transition-colors",
+        isCurrentUser ? "flex-reverse" : "flex-row"
+      )}
+    >
+      <div className={cn("flex max-w-[85%] gap-3", isCurrentUser && "ml-auto flex-row-reverse")}>
         {!isCurrentUser && (
           <AvatarWithBadge
             name={message.sender?.name || ""}
             src={message.sender?.avatar || ""}
             className="shrink-0 mt-1"
+            size="size-9"
           />
         )}
 
-        <div className={contentWrapperClass}>
-          <div className="flex flex-col gap-1">
-            {/* Message with reply button beside */}
-            <div className="flex items-end gap-2 group">
-              <div className={messageClass}>
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  {!isCurrentUser && (
-                    <div className="text-xs font-semibold text-primary">
-                      {message.sender?.name || "Unknown"}
-                    </div>
-                  )}
-                  {isCurrentUser && (
-                    <div className="text-xs font-semibold text-accent">You</div>
-                  )}
-
-                  <div className="flex items-center gap-1 ml-auto">
-                    <span className="text-[.7rem]">
-                      {formatChatTime(message.createdAt)}
-                    </span>
-                    {message.status && isCurrentUser && (
-                      <div className="flex items-center">
-                        {getMessageStatusIcon(message.status)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Reply content */}
-                {message.replyTo && (
-                  <div className={replyBoxClass}>
-                    <div className="font-medium text-xs mb-1">
-                      {replySenderName}
-                    </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      {message.replyTo.image && !message.replyTo.content && (
-                        <>
-                          <ImageIcon size={12} />
-                          <span>Photo</span>
-                        </>
-                      )}
-                      {message.replyTo.content && (
-                        <span className="truncate">
-                          {message.replyTo.content.length > 50
-                            ? `${message.replyTo.content.substring(0, 50)}...`
-                            : message.replyTo.content}
-                        </span>
-                      )}
-                      {message.replyTo.image && message.replyTo.content && (
-                        <span className="truncate flex items-center gap-1">
-                          <ImageIcon size={12} />
-                          {message.replyTo.content.length > 40
-                            ? `${message.replyTo.content.substring(0, 40)}...`
-                            : message.replyTo.content}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Message content */}
-                {message.image && (
-                  <div className="mb-2">
-                    <Dialog
-                      open={showImageModal}
-                      onOpenChange={setShowImageModal}
-                    >
-                      <DialogTrigger asChild>
-                        <div className="relative inline-block cursor-pointer group/image">
-                          {imageLoading && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-muted rounded-lg">
-                              <Spinner className="h-4 w-4" />
-                            </div>
-                          )}
-                          {imageError ? (
-                            <div className="flex items-center justify-center w-48 h-32 bg-muted rounded-lg border-2 border-dashed border-muted-foreground/25">
-                              <div className="text-center">
-                                <ImageIcon
-                                  size={24}
-                                  className="mx-auto mb-1 text-muted-foreground"
-                                />
-                                <span className="text-xs text-muted-foreground">
-                                  Failed to load image
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <img
-                              src={message.image}
-                              alt={`Image sent by ${
-                                message.sender?.name || "user"
-                              }`}
-                              className={cn(
-                                "rounded-lg max-w-full h-auto object-cover transition-all duration-200",
-                                "max-w-xs sm:max-w-sm md:max-w-md",
-                                "hover:opacity-90 hover:scale-[1.02]",
-                                imageLoading && "opacity-0"
-                              )}
-                              style={{ maxHeight: "300px" }}
-                              onLoad={() => setImageLoading(false)}
-                              onError={() => {
-                                setImageLoading(false);
-                                setImageError(true);
-                              }}
-                              loading="lazy"
-                            />
-                          )}
-                          {!imageError && !imageLoading && (
-                            <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors rounded-lg flex items-center justify-center opacity-0 group-hover/image:opacity-100">
-                              <ExternalLinkIcon
-                                size={20}
-                                className="text-white drop-shadow-lg"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-black/95">
-                        <div className="relative flex items-center justify-center min-h-50 max-h-[90vh]">
-                          <img
-                            src={message.image}
-                            alt={`Image sent by ${
-                              message.sender?.name || "user"
-                            }`}
-                            className="max-w-full max-h-full object-contain"
-                            onError={() => setShowImageModal(false)}
-                          />
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                )}
-
-                {message.content && (
-                  <div className="whitespace-pre-wrap wrap-break-word">
-                    {renderMessageContent(message.content)}
-                  </div>
-                )}
+        <Message from={isCurrentUser ? "user" : "assistant"} className="w-full relative">
+          <MessageContent
+            className={cn(
+              "relative px-5 py-3 shadow-md transition-all",
+              isCurrentUser
+                ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground"
+                : "rounded-2xl rounded-tl-none bg-muted text-foreground"
+            )}
+          >
+            {/* Header: Sender Info (AI only) */}
+            {!isCurrentUser && (
+              <div className="flex items-center gap-2 mb-1.5 border-b border-foreground/5 pb-1">
+                <span className="text-[11px] font-bold text-primary tracking-tight">
+                  {message.sender?.name || "Lume AI"}
+                </span>
               </div>
+            )}
 
-              {/* Reply button beside message */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onReply(message)}
-                className="h-6 w-6 p-0 hover:bg-muted rounded-full opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                aria-label={`Reply to message from ${
-                  message.sender?.name || "user"
-                }`}
+            {/* Reply Context */}
+            {message.replyTo && (
+              <div
+                className={cn(
+                  "mb-3 p-2.5 text-[11px] rounded-xl border-l-4 bg-black/5 dark:bg-white/5",
+                  isCurrentUser ? "border-white/40" : "border-primary/40"
+                )}
               >
-                <ReplyIcon size={14} className="text-muted-foreground" />
-              </Button>
+                <div className="font-bold opacity-100 mb-1">
+                  {replySenderName}
+                </div>
+                <div className="opacity-90 flex items-center gap-1.5 italic">
+                  {message.replyTo.image && (
+                    <ImageIcon size={12} className="shrink-0" />
+                  )}
+                  <span className="truncate">
+                    {message.replyTo.content || "Sent an image"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Image Content */}
+            {message.image && (
+              <div className="mb-3">
+                <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+                  <DialogTrigger asChild>
+                    <div className="relative inline-block cursor-pointer group/image overflow-hidden rounded-xl border border-border/40 shadow-sm">
+                      {imageLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted/30 backdrop-blur-sm">
+                          <Spinner className="h-5 w-5" />
+                        </div>
+                      )}
+                      {imageError ? (
+                        <div className="flex items-center justify-center w-56 h-36 bg-muted/40 rounded-xl">
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <ImageIcon size={24} />
+                            <span className="text-[10px]">Image unavailable</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <img
+                          src={message.image}
+                          alt="Message attachment"
+                          className={cn(
+                            "max-w-full h-auto object-cover transition-all duration-300 hover:brightness-95",
+                            "max-h-[280px]",
+                            imageLoading && "opacity-0"
+                          )}
+                          onLoad={() => setImageLoading(false)}
+                          onError={() => {
+                            setImageLoading(false);
+                            setImageError(true);
+                          }}
+                        />
+                      )}
+                      {!imageError && !imageLoading && (
+                        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover/image:opacity-100">
+                          <div className="bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-xs">
+                            <ExternalLinkIcon size={18} className="text-foreground" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] p-1 border-none bg-black/90 backdrop-blur-md">
+                    <img
+                      src={message.image}
+                      alt="Full perspective"
+                      className="w-full h-full object-contain rounded-lg"
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
+
+            {/* Text Content */}
+            {message.content && (
+              <div
+                className={cn(
+                  "text-[15px] leading-relaxed wrap-break-word",
+                  isCurrentUser ? "text-primary-foreground" : "text-foreground"
+                )}
+              >
+                <MessageResponse>
+                  {message.content}
+                </MessageResponse>
+              </div>
+            )}
+
+            {/* Meta: Time & Status */}
+            <div
+              className={cn(
+                "flex items-center gap-1.5 mt-2 opacity-70 text-[10px] font-bold justify-end",
+                isCurrentUser && "text-primary-foreground/90"
+              )}
+            >
+              <span>{formatChatTime(message.createdAt)}</span>
+              {message.status && isCurrentUser && (
+                <div className="flex items-center">
+                  {getMessageStatusIcon(message.status)}
+                </div>
+              )}
             </div>
+
+            {/* Typing Indicator */}
+            {message.streaming && (
+              <div className="flex gap-1.5 mt-2 justify-start opacity-80">
+                <span className="size-1.5 rounded-full bg-current animate-bounce animation-duration-[0.8s]" />
+                <span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:0.2s] animation-duration-[0.8s]" />
+                <span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:0.4s] animation-duration-[0.8s]" />
+              </div>
+            )}
+          </MessageContent>
+
+          {/* Inline Actions */}
+          <div
+            className={cn(
+              "opacity-0 group-hover:opacity-100 transition-all absolute top-1/2 -translate-y-1/2",
+              isCurrentUser ? "-left-11" : "-right-11"
+            )}
+          >
+            <Button
+              onClick={() => onReply(message)}
+              variant="ghost"
+              size="icon"
+              className="size-8 rounded-full bg-background/50 hover:bg-background border shadow-xs backdrop-blur-sm"
+            >
+              <ReplyIcon size={14} className="text-muted-foreground" />
+            </Button>
           </div>
-        </div>
+        </Message>
       </div>
-    );
-  }
-);
+    </div>
+  );
+});
 
 ChatBodyMessage.displayName = "ChatBodyMessage";

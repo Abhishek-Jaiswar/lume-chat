@@ -17,8 +17,8 @@ export const getOtherUserAndGroup = (
   if (isGroup) {
     return {
       name: chat.groupName || "Unnamed Group",
-      subHeading: `${chat.participants.length} member`,
-      avatar: "",
+      subHeading: `${chat.participants.length} members`,
+      avatar: null,
       isGroup,
     };
   }
@@ -27,12 +27,15 @@ export const getOtherUserAndGroup = (
 
   const isOnline = isUserOnline(other?._id ?? "");
 
+  const subHeading = other?.isAi ? "AI Assistant" : isOnline ? "Online" : "Offline";
+
   return {
     name: other?.name || "Unknown",
-    subHeading: isOnline ? "Online" : "Offline",
-    avatar: "",
+    subHeading,
+    avatar: other?.avatar || null,
     isGroup: false,
     isOnline,
+    isAi: other?.isAi || false,
   };
 };
 

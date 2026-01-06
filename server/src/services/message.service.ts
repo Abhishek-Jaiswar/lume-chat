@@ -88,7 +88,7 @@ export const sendMessageService = async (
   if (chat.isAiChat) {
     aiResponse = await getAiResponse(chatId, userId);
     if (aiResponse) {
-      chat.lastMessage = newMessage._id as mongoose.Types.ObjectId;
+      chat.lastMessage = aiResponse._id as mongoose.Types.ObjectId;
       await chat.save();
     }
   }
@@ -97,7 +97,6 @@ export const sendMessageService = async (
     userMessages: newMessage,
     chat,
     aiResponse,
-    isAiChat: chat.isAiChat,
   };
 };
 
@@ -114,26 +113,30 @@ const getAiResponse = async (chatId: string, userId: string) => {
     if (msg.image) {
       parts.push({
         type: "image",
-        data: msg.image,
-        mediaType: "image/png",
-        fileName: "image.png",
+        image: new URL(msg.image),
+        mimeType: "image/png",
       });
 
       if (!msg.content) {
         parts.push({
           type: "text",
-          text: "Describe the above image. based on what you see.",
+          text: "Describe the above image based on its visual content.",
         });
-      }
-
-      if (msg.content) {
+      } else {
         parts.push({
           type: "text",
           text: msg.replyTo
-            ? `Replying to: ${msg.replyTo.content}\n${msg.content}`
+            ? `(Replying to: ${msg.replyTo.content})\n\n${msg.content}`
             : msg.content,
         });
       }
+    } else if (msg.content) {
+      parts.push({
+        type: "text",
+        text: msg.replyTo
+          ? `(Replying to: ${msg.replyTo.content})\n\n${msg.content}`
+          : msg.content,
+      });
     }
 
     return { role, content: parts };
@@ -143,11 +146,12 @@ const getAiResponse = async (chatId: string, userId: string) => {
     model: google("gemini-2.5-flash"),
     messages: formattedMessages,
     system:
-      "You are Lume AI, a helpful and creative assistant. Provide detailed and informative responses to the user queries. Use the images sent by the user to enhance your responses when applicable.",
+      "You are Lume AI, a helpful, creative assistant. Provide clear, informative, and engaging responses. If an image is provided, analyze it thoroughly to provide contextually relevant answers.",
   });
 
   let fullResponse = "";
   for await (const chunk of result.textStream) {
+    fullResponse += chunk;
     emitChatAI({
       chatId,
       chunk,
@@ -155,40 +159,39 @@ const getAiResponse = async (chatId: string, userId: string) => {
       done: false,
       message: null,
     });
-    fullResponse += chunk;
-
-    if (!fullResponse.trim()) return "";
-
-    const aiMessage = await Message.create({
-      chatId,
-      sender: lumeAi?._id,
-      content: fullResponse,
-    });
-
-    await aiMessage.populate("sender", "name avatar isAi");
-
-    // Emit ai full response
-    emitChatAI({
-      chatId,
-      chunk: null,
-      sender: lumeAi,
-      done: true,
-      message: aiMessage,
-    });
-
-    emitLastMessageToParticipants([userId], chatId, aiMessage);
-
-    return aiMessage;
   }
+
+  if (!fullResponse.trim()) return null;
+
+  const aiMessage = await Message.create({
+    chatId,
+    sender: lumeAi?._id,
+    content: fullResponse,
+  });
+
+  await aiMessage.populate("sender", "name avatar isAi");
+
+  // Emit ai full response done signal
+  emitChatAI({
+    chatId,
+    chunk: null,
+    sender: lumeAi,
+    done: true,
+    message: aiMessage,
+  });
+
+  emitLastMessageToParticipants([userId], chatId, aiMessage);
+
+  return aiMessage;
 };
 
 const getChatHistory = async (chatId: string) => {
   const messages = await Message.find({ chatId })
     .populate("sender", "isAi")
     .populate("replyTo", "content")
-    .sort({ createdAt: 1 })
-    .limit(5)
+    .sort({ createdAt: -1 }) // Get latest messages first
+    .limit(20) // Get more context
     .lean();
 
-  return messages.reverse();
+  return messages.reverse(); // Return in chronological order
 };

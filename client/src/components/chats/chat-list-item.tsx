@@ -52,7 +52,7 @@ const ChatListItem = ({ chat, onClick, currentUserId }: IChatListItem) => {
     >
       <AvatarWithBadge
         name={name}
-        src={avatar}
+        src={avatar || ""}
         isGroup={isGroup}
         isOnline={isOnline}
       />

@@ -1,12 +1,13 @@
 import React from "react";
 import Sidebar from "./sidebar";
+import { SidebarProvider, SidebarInset } from "./ui/sidebar";
 
 const AppWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="h-full">
+    <SidebarProvider>
       <Sidebar />
-      <main className="lg:pl-10 h-full ">{children}</main>
-    </div>
+      <SidebarInset>{children}</SidebarInset>
+    </SidebarProvider>
   );
 };
 

@@ -22,6 +22,8 @@ const SignleChat = () => {
   const chat = singleChat?.chat;
   const messages = singleChat?.messages || [];
 
+  const isAiChat = chat?.isAiChat || false;
+
   useEffect(() => {
     if (!chatId) return;
     fetchSingleChat(chatId);
@@ -39,7 +41,7 @@ const SignleChat = () => {
 
   if (isSingleChatLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="h-full flex-1 flex items-center justify-center">
         <Spinner className="w-11 h-11 text-primary!" />
       </div>
     );
@@ -47,15 +49,15 @@ const SignleChat = () => {
 
   if (!chat) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="h-full flex-1 flex items-center justify-center">
         <p className="text-lg">Chat not found</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full">
-      <div className="relative h-screen flex flex-col overflow-hidden">
+    <div className="flex-1 h-full overflow-hidden">
+      <div className="h-full flex flex-col overflow-hidden">
         <ChatHeader chat={chat} currentUserId={currentUserId} />
         {messages.length === 0 ? (
           <EmptyState
@@ -77,6 +79,7 @@ const SignleChat = () => {
             chatId={chatId}
             currentUserId={currentUserId}
             onCancelReply={() => setReplyTo(null)}
+            isAiChat={isAiChat}
           />
         )}
       </div>

@@ -1,68 +1,116 @@
 import { useAuth } from "@/hooks/use-auth";
-import React from "react";
 import { useTheme } from "./theme-provider";
 import { isUserOnline } from "@/lib/helper";
 import Logo from "./logo";
 import { PROTECTED_ROUTES } from "@/routes/routes";
-import { Button } from "./ui/button";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import AvatarWithBadge from "./avatar-with-badge";
+import {
+  Sidebar as ShadcnSidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  useSidebar,
+} from "./ui/sidebar";
+import ChatList from "./chats/chat-list";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
-
+  const { state, isMobile } = useSidebar();
   const isOnline = isUserOnline(user?._id);
-  //   console.log(isOnline);
 
   return (
-    <div className="top-0 fixed inset-y-0 w-11 left-0 z-9999 h-svh border-r border-border shadow-md ">
-      <div className="w-full h-full px-1 pt-1 pb-6 flex flex-col items-center justify-between">
+    <ShadcnSidebar collapsible="icon" className="border-r border-border bg-sidebar">
+      <SidebarHeader className="h-16 flex items-center justify-center border-b border-sidebar-border px-4">
         <Logo
           url={PROTECTED_ROUTES.CHAT}
-          imgClass="size-6 "
-          textClass="text-white"
-          showText={false}
+          imgClass="size-8"
+          showText={state === "expanded" || isMobile}
+          textClass="text-sidebar-foreground truncate font-bold text-lg"
         />
+      </SidebarHeader>
 
-        <div className="flex flex-col items-center gap-3">
-          <Button
-            variant="outline"
-            size={"icon"}
-            className="border-0 rounded-full"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          >
-            <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:rotate-90" />
-            <Moon className=" absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-          </Button>
+      <SidebarContent className="overflow-hidden max-w-[20rem]">
+        {state === "expanded" && <ChatList />}
+      </SidebarContent>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <div role="button">
-                <AvatarWithBadge
-                  name={user?.name || "Lume@ukwn"}
-                  src={user?.avatar || ""}
-                  isOnline={isOnline}
-                  className=""
-                />
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48 z-9999" align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    </div>
+      <SidebarFooter className="p-2 border-t border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              className="w-full flex items-center justify-center p-0"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              tooltip="Toggle Theme"
+            >
+              <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:rotate-90" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <AvatarWithBadge
+                    name={user?.name || "Lume@ukwn"}
+                    src={user?.avatar || ""}
+                    isOnline={isOnline}
+                    className="size-8 shrink-0"
+                  />
+                  {state === "expanded" && (
+                    <div className="flex flex-col items-start truncate ml-2">
+                      <span className="text-sm font-semibold truncate w-full text-left">
+                        {user?.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate w-full text-left">
+                        {user?.email}
+                      </span>
+                    </div>
+                  )}
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-56"
+                side={state === "expanded" ? "bottom" : "right"}
+                align="end"
+              >
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user?.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </ShadcnSidebar>
   );
 };
 
 export default Sidebar;
+

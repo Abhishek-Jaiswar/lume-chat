@@ -1,7 +1,7 @@
 import { useChat } from "@/hooks/use-chat";
 import { useSocket } from "@/hooks/use-socket";
 import type { MessageType } from "@/types/chat-types";
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ChatBodyMessage } from "./chat-body-message";
 
 interface Props {
@@ -13,36 +13,68 @@ interface Props {
 
 const ChatBody = ({ chatId, messages, onReply, isGroup = false }: Props) => {
   const { socket } = useSocket();
-  const { addNewMessage } = useChat();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const isAtBottom = useRef(true);
+
+  // Track if user is at bottom
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    // 100px threshold
+    const atBottom = scrollHeight - scrollTop - clientHeight < 100;
+    isAtBottom.current = atBottom;
+  };
+
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior });
+    }
+  };
 
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId || !socket) return;
 
-    if (!socket) return;
+    const { handleAiStream, addNewMessage } = useChat.getState();
 
-    const handleNewMessage = (msg: MessageType) => {
-      if (!msg || !msg._id) {
-        console.warn("Received invalid message from socket:", msg);
-        return;
+    const handleAiStreamEvent = (data: any) => {
+      handleAiStream(data);
+      // For streaming, we want almost instant scroll to stay at bottom
+      if (isAtBottom.current) {
+        scrollToBottom("auto");
       }
-      addNewMessage(chatId, msg);
     };
 
-    socket.on("message:new", handleNewMessage);
+    const handleNewMessageEvent = (msg: MessageType) => {
+      addNewMessage(chatId, msg, msg._id);
+      if (isAtBottom.current) {
+        scrollToBottom("smooth");
+      }
+    };
+
+    socket.on("chat:ai", handleAiStreamEvent);
+    socket.on("message:new", handleNewMessageEvent);
 
     return () => {
-      socket.off("message:new", handleNewMessage);
+      socket.off("chat:ai", handleAiStreamEvent);
+      socket.off("message:new", handleNewMessageEvent);
     };
-  }, [chatId, socket, addNewMessage]);
+  }, [chatId, socket]);
 
+  // Initial scroll and when message list changes significantly
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (isAtBottom.current) {
+      scrollToBottom("smooth");
+    }
+  }, [messages?.length]);
 
   return (
     <div className="flex-1 overflow-hidden">
-      <div className="h-full overflow-y-auto">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="h-full overflow-y-auto scroll-smooth"
+      >
         <div className="w-full max-w-6xl mx-auto h-full flex flex-col px-3 py-4">
           {messages?.filter(Boolean).map((message) => (
             <ChatBodyMessage
@@ -52,8 +84,8 @@ const ChatBody = ({ chatId, messages, onReply, isGroup = false }: Props) => {
               isGroup={isGroup}
             />
           ))}
+          <div ref={bottomRef} className="h-4 w-full" />
         </div>
-        <div ref={bottomRef} />
       </div>
     </div>
   );

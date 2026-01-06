@@ -5,6 +5,7 @@ export type ChatType = {
   lastMessage: MessageType;
   participants: TUser[];
   isGroup: boolean;
+  isAiChat: boolean;
   groupName: string;
   createdBy: string;
   createdAt: string;
@@ -20,8 +21,8 @@ export type MessageType = {
   chatId: string;
   createdAt: string;
   updatedAt: string;
-
   status?: string;
+  streaming?: boolean;
 };
 
 export type CreateChatType = {

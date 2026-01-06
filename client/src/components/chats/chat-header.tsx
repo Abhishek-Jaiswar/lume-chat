@@ -1,10 +1,10 @@
 import { ArrowLeft } from "lucide-react";
-import React from "react";
 import AvatarWithBadge from "../avatar-with-badge";
 import type { ChatType } from "@/types/chat-types";
 import { useNavigate } from "react-router-dom";
 import { getOtherUserAndGroup } from "@/lib/helper";
 import { PROTECTED_ROUTES } from "@/routes/routes";
+import { SidebarTrigger } from "../ui/sidebar";
 
 interface Props {
   chat: ChatType;
@@ -19,8 +19,9 @@ const ChatHeader = ({ chat, currentUserId }: Props) => {
   );
 
   return (
-    <div className="sticky top-0 flex items-center gap-5 border-b border-border bg-card px-2 z-50">
-      <div className=" h-14 px-4 flex items-center">
+    <div className="flex items-center gap-2 border-b border-border px-2 z-50">
+      <SidebarTrigger className="ml-2" />
+      <div className=" h-14 px-2 flex items-center">
         <div>
           <ArrowLeft
             className="w-5 h-5 inline-block lg:hidden text-muted-foreground cursor-pointer mr-2"
@@ -29,7 +30,7 @@ const ChatHeader = ({ chat, currentUserId }: Props) => {
         </div>
         <AvatarWithBadge
           name={name}
-          src={avatar}
+          src={avatar || ""}
           isGroup={isGroup}
           isOnline={isOnline}
         />
@@ -37,9 +38,8 @@ const ChatHeader = ({ chat, currentUserId }: Props) => {
         <div className="ml-2">
           <h5 className="font-semibold">{name}</h5>
           <p
-            className={`text-xs ${
-              isOnline ? "text-green-500" : "text-muted-foreground"
-            }`}
+            className={`text-xs ${isOnline ? "text-green-500" : "text-muted-foreground"
+              }`}
           >
             {subHeading}
           </p>

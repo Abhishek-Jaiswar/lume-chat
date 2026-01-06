@@ -15,6 +15,7 @@ export type TUser = {
   name: string;
   email: string;
   avatar?: string | null;
+  isAi?: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
