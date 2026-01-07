@@ -5,14 +5,12 @@ import {
 } from "../ui/input-group";
 import { Search } from "lucide-react";
 import { NewChatPopover } from "./new-chat-popover";
-import { SidebarTrigger } from "../ui/sidebar";
 
 const ChatListHeader = ({ onSearch }: { onSearch: (val: string) => void }) => {
   return (
     <div className="px-3 py-3 border-b border-border bg-sidebar shrink-0">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <SidebarTrigger className="-ml-1 lg:hidden" />
           <h1 className="text-xl font-semibold">Chat</h1>
         </div>
         <div>
@@ -26,7 +24,7 @@ const ChatListHeader = ({ onSearch }: { onSearch: (val: string) => void }) => {
             onChange={(e) => onSearch(e.target.value)}
           />
           <InputGroupAddon>
-            <Search className="h4 w-4 text-muted-foreground" />
+            <Search className="h-4 w-4 text-muted-foreground" />
           </InputGroupAddon>
         </InputGroup>
       </div>

@@ -1,10 +1,11 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Menu } from "lucide-react";
 import AvatarWithBadge from "../avatar-with-badge";
 import type { ChatType } from "@/types/chat-types";
 import { useNavigate } from "react-router-dom";
 import { getOtherUserAndGroup } from "@/lib/helper";
 import { PROTECTED_ROUTES } from "@/routes/routes";
-import { SidebarTrigger } from "../ui/sidebar";
+import { useSidebar } from "@/contexts/sidebar-context";
+import { Button } from "../ui/button";
 
 interface Props {
   chat: ChatType;
@@ -13,16 +14,25 @@ interface Props {
 
 const ChatHeader = ({ chat, currentUserId }: Props) => {
   const navigate = useNavigate();
+  const { toggle } = useSidebar();
   const { name, subHeading, avatar, isGroup, isOnline } = getOtherUserAndGroup(
     chat,
     currentUserId
   );
 
   return (
-    <div className="flex items-center gap-2 border-b border-border px-2 z-50">
-      <SidebarTrigger className="ml-2" />
-      <div className=" h-14 px-2 flex items-center">
-        <div>
+    <div className="flex items-center gap-2 border-b border-border px-2 sticky top-0 bg-background/80 backdrop-blur-sm z-50">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="ml-1 shrink-0"
+        onClick={toggle}
+      >
+        <Menu className="size-5" />
+      </Button>
+
+      <div className=" h-14 px-2 flex items-center flex-1 min-w-0">
+        <div className="shrink-0">
           <ArrowLeft
             className="w-5 h-5 inline-block lg:hidden text-muted-foreground cursor-pointer mr-2"
             onClick={() => navigate(PROTECTED_ROUTES.CHAT)}
@@ -35,10 +45,10 @@ const ChatHeader = ({ chat, currentUserId }: Props) => {
           isOnline={isOnline}
         />
 
-        <div className="ml-2">
-          <h5 className="font-semibold">{name}</h5>
+        <div className="ml-2 truncate">
+          <h5 className="font-semibold truncate">{name}</h5>
           <p
-            className={`text-xs ${isOnline ? "text-green-500" : "text-muted-foreground"
+            className={`text-xs truncate ${isOnline ? "text-green-500" : "text-muted-foreground"
               }`}
           >
             {subHeading}
@@ -46,7 +56,7 @@ const ChatHeader = ({ chat, currentUserId }: Props) => {
         </div>
       </div>
 
-      <div className="flex-1 py-4 h-full text-center cursor-pointer border-primary font-medium text-primary ">
+      <div className="hidden md:flex py-4 h-full text-center cursor-pointer border-primary font-medium text-primary px-4 shrink-0">
         Chat
       </div>
     </div>

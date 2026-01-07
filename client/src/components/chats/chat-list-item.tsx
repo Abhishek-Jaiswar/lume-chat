@@ -1,4 +1,3 @@
-import React from "react";
 import { formatChatTime, getOtherUserAndGroup } from "@/lib/helper";
 import { cn } from "@/lib/utils";
 import type { ChatType } from "@/types/chat-types";
@@ -32,11 +31,10 @@ const ChatListItem = ({ chat, onClick, currentUserId }: IChatListItem) => {
 
     if (lastMessage.image) return "Photo";
     if (isGroup && lastMessage.sender) {
-      return `${
-        lastMessage.sender._id === currentUserId
-          ? "You"
-          : lastMessage.sender.name
-      }: ${lastMessage.content}`;
+      return `${lastMessage.sender._id === currentUserId
+        ? "You"
+        : lastMessage.sender.name
+        }: ${lastMessage.content}`;
     }
 
     return lastMessage.content;

@@ -15,7 +15,15 @@ export type TUser = {
   name: string;
   email: string;
   avatar?: string | null;
+  about?: string;
+  wallpaper?: string | null;
   isAi?: boolean;
   createdAt: Date;
   updatedAt: Date;
+};
+export type TUpdateProfile = {
+  name?: string;
+  avatar?: string;
+  about?: string;
+  wallpaper?: string | null;
 };

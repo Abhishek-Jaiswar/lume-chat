@@ -6,6 +6,8 @@ export interface UserDocument extends Document {
   email?: string;
   password?: string;
   avatar?: string | null;
+  about?: string;
+  wallpaper?: string;
   isAi: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +37,14 @@ const userSchema = new Schema<UserDocument>(
       },
     },
     avatar: {
+      type: String,
+      default: null,
+    },
+    about: {
+      type: String,
+      default: "Hey there! I am using Lume Chat",
+    },
+    wallpaper: {
       type: String,
       default: null,
     },

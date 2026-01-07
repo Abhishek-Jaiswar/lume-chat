@@ -41,8 +41,8 @@ export const getOtherUserAndGroup = (
 
 export const formatChatTime = (date: string | Date) => {
   if (!date) return "";
-  const newDate = new Date();
-  if (isNaN(newDate.getDate())) return "Invalid date";
+  const newDate = new Date(date);
+  if (isNaN(newDate.getTime())) return "Invalid date";
 
   if (isToday(newDate)) return format(newDate, "h:mm a");
   if (isYesterday(newDate)) return "Yesterday";

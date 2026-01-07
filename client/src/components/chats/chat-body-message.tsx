@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import type { MessageType } from "@/types/chat-types";
-import React, { memo, useState } from "react";
+import { memo, useState } from "react";
 import AvatarWithBadge from "../avatar-with-badge";
 import { formatChatTime } from "@/lib/helper";
 import { Button } from "../ui/button";
@@ -15,13 +15,6 @@ import {
   ImageIcon,
   ExternalLinkIcon,
 } from "lucide-react";
-import {
-  Message,
-  MessageContent,
-  MessageResponse,
-  MessageActions,
-  MessageAction,
-} from "../ai-elements/message";
 
 interface Props {
   message: MessageType;
@@ -73,10 +66,10 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
           />
         )}
 
-        <Message from={isCurrentUser ? "user" : "assistant"} className="w-full relative">
-          <MessageContent
+        <div className={cn("flex flex-col gap-2 relative", isCurrentUser ? "items-end" : "items-start")}>
+          <div
             className={cn(
-              "relative px-5 py-3 shadow-md transition-all",
+              "relative px-4 py-2.5 shadow-sm transition-colors max-w-full",
               isCurrentUser
                 ? "rounded-2xl rounded-tr-none bg-primary text-primary-foreground"
                 : "rounded-2xl rounded-tl-none bg-muted text-foreground"
@@ -136,8 +129,8 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
                           src={message.image}
                           alt="Message attachment"
                           className={cn(
-                            "max-w-full h-auto object-cover transition-all duration-300 hover:brightness-95",
-                            "max-h-[280px]",
+                            "max-w-full h-auto object-cover transition-[filter,opacity] duration-300 hover:brightness-95",
+                            "max-h-70",
                             imageLoading && "opacity-0"
                           )}
                           onLoad={() => setImageLoading(false)}
@@ -171,20 +164,18 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
             {message.content && (
               <div
                 className={cn(
-                  "text-[15px] leading-relaxed wrap-break-word",
+                  "text-[15px] leading-relaxed whitespace-pre-wrap break-words",
                   isCurrentUser ? "text-primary-foreground" : "text-foreground"
                 )}
               >
-                <MessageResponse>
-                  {message.content}
-                </MessageResponse>
+                {message.content}
               </div>
             )}
 
             {/* Meta: Time & Status */}
             <div
               className={cn(
-                "flex items-center gap-1.5 mt-2 opacity-70 text-[10px] font-bold justify-end",
+                "flex items-center gap-1.5 mt-1.5 opacity-70 text-[10px] font-bold justify-end",
                 isCurrentUser && "text-primary-foreground/90"
               )}
             >
@@ -198,18 +189,18 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
 
             {/* Typing Indicator */}
             {message.streaming && (
-              <div className="flex gap-1.5 mt-2 justify-start opacity-80">
-                <span className="size-1.5 rounded-full bg-current animate-bounce animation-duration-[0.8s]" />
-                <span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:0.2s] animation-duration-[0.8s]" />
-                <span className="size-1.5 rounded-full bg-current animate-bounce [animation-delay:0.4s] animation-duration-[0.8s]" />
+              <div className="flex gap-1 mt-2 justify-start opacity-80">
+                <span className="size-1 rounded-full bg-current animate-bounce animation-duration-[0.8s]" />
+                <span className="size-1 rounded-full bg-current animate-bounce [animation-delay:0.2s] animation-duration-[0.8s]" />
+                <span className="size-1 rounded-full bg-current animate-bounce [animation-delay:0.4s] animation-duration-[0.8s]" />
               </div>
             )}
-          </MessageContent>
+          </div>
 
           {/* Inline Actions */}
           <div
             className={cn(
-              "opacity-0 group-hover:opacity-100 transition-all absolute top-1/2 -translate-y-1/2",
+              "opacity-0 group-hover:opacity-100 transition-opacity absolute top-1/2 -translate-y-1/2",
               isCurrentUser ? "-left-11" : "-right-11"
             )}
           >
@@ -222,7 +213,7 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
               <ReplyIcon size={14} className="text-muted-foreground" />
             </Button>
           </div>
-        </Message>
+        </div>
       </div>
     </div>
   );

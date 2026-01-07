@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { passportAuthenticateJwt } from "../config/passport.config";
-import { getUsersController } from "../controllers/user.controller";
+import { getUsersController, updateUserController } from "../controllers/user.controller";
 
-const userRoutes = Router()
-  .use(passportAuthenticateJwt)
-  .get("/all", getUsersController);
+const userRoutes = Router();
+
+userRoutes.get("/all", passportAuthenticateJwt, getUsersController);
+userRoutes.put("/update", passportAuthenticateJwt, updateUserController);
 
 export default userRoutes;

@@ -41,6 +41,13 @@ app.get(
   })
 );
 
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+app.get("/api/test-route", (req, res) => res.json({ status: "ok", message: "API is working" }));
+
 app.use('/api', router)
 
 app.use(errorHandler);

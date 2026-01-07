@@ -20,6 +20,12 @@ interface IAuth {
   login: (data: TLogin) => Promise<AuthResult>;
   logout: () => Promise<void>;
   isAuthStatus: () => Promise<void>;
+  updateProfile: (data: {
+    name?: string;
+    avatar?: string;
+    about?: string;
+    wallpaper?: string | null;
+  }) => Promise<AuthResult>;
 }
 
 export const useAuth = create<IAuth>()(
@@ -29,6 +35,17 @@ export const useAuth = create<IAuth>()(
       isSigningUp: false,
       isLoggingIn: false,
       isAuthStatusLoading: false,
+
+      updateProfile: async (data) => {
+        try {
+          const res = await API.put("/user/update", data);
+          set({ user: res.data.user });
+          return { success: true };
+        } catch (error) {
+          const err = handleApiError(error);
+          return { success: false, error: err.message };
+        }
+      },
 
       register: async (formData) => {
         set({ isSigningUp: true });

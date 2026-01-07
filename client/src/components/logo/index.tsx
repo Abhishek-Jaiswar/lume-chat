@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import logoSvg from "@/assets/lume-log.svg";
 import { cn } from "@/lib/utils";

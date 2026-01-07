@@ -1,0 +1,20 @@
+src/App.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ai-elements/confirmation.tsx(100,3): error TS2578: Unused '@ts-expect-error' directive.
+src/components/ai-elements/confirmation.tsx(120,9): error TS2578: Unused '@ts-expect-error' directive.
+src/components/ai-elements/confirmation.tsx(122,9): error TS2578: Unused '@ts-expect-error' directive.
+src/components/ai-elements/confirmation.tsx(144,9): error TS2578: Unused '@ts-expect-error' directive.
+src/components/ai-elements/confirmation.tsx(146,9): error TS2578: Unused '@ts-expect-error' directive.
+src/components/ai-elements/confirmation.tsx(165,3): error TS2578: Unused '@ts-expect-error' directive.
+src/components/ai-elements/tool.tsx(43,5): error TS2578: Unused '@ts-expect-error' directive.
+src/components/ai-elements/tool.tsx(54,5): error TS2578: Unused '@ts-expect-error' directive.
+src/components/chats/chat-list.tsx(2,8): error TS6133: 'React' is declared but its value is never read.
+src/components/chats/new-chat-popover.tsx(2,8): error TS6133: 'React' is declared but its value is never read.
+src/components/empty-state.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/logo/index.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/layouts/base-layout.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/auth/sign-in.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/auth/sign-up.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/chat/chatId/index.tsx(11,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/chat/index.tsx(2,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/settings/index.tsx(329,59): error TS6133: 'idx' is declared but its value is never read.
+src/routes/route-guard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.

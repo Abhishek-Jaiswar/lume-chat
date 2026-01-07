@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import AppRoutes from "./routes";
 import { useAuth } from "./hooks/use-auth";
 import Logo from "./components/logo";

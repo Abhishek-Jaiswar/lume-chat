@@ -1,8 +1,10 @@
+import { useAuth } from "@/hooks/use-auth";
 import { useChat } from "@/hooks/use-chat";
 import { useSocket } from "@/hooks/use-socket";
 import type { MessageType } from "@/types/chat-types";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { ChatBodyMessage } from "./chat-body-message";
+import { StickToBottom } from "use-stick-to-bottom";
 
 interface Props {
   chatId: string | null;
@@ -12,44 +14,21 @@ interface Props {
 }
 
 const ChatBody = ({ chatId, messages, onReply, isGroup = false }: Props) => {
+  const { user } = useAuth();
   const { socket } = useSocket();
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
-  const isAtBottom = useRef(true);
-
-  // Track if user is at bottom
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-    // 100px threshold
-    const atBottom = scrollHeight - scrollTop - clientHeight < 100;
-    isAtBottom.current = atBottom;
-  };
-
-  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior });
-    }
-  };
 
   useEffect(() => {
     if (!chatId || !socket) return;
 
     const { handleAiStream, addNewMessage } = useChat.getState();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleAiStreamEvent = (data: any) => {
       handleAiStream(data);
-      // For streaming, we want almost instant scroll to stay at bottom
-      if (isAtBottom.current) {
-        scrollToBottom("auto");
-      }
     };
 
     const handleNewMessageEvent = (msg: MessageType) => {
       addNewMessage(chatId, msg, msg._id);
-      if (isAtBottom.current) {
-        scrollToBottom("smooth");
-      }
     };
 
     socket.on("chat:ai", handleAiStreamEvent);
@@ -61,33 +40,24 @@ const ChatBody = ({ chatId, messages, onReply, isGroup = false }: Props) => {
     };
   }, [chatId, socket]);
 
-  // Initial scroll and when message list changes significantly
-  useEffect(() => {
-    if (isAtBottom.current) {
-      scrollToBottom("smooth");
-    }
-  }, [messages?.length]);
-
   return (
-    <div className="flex-1 overflow-hidden">
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="h-full overflow-y-auto scroll-smooth"
+    <StickToBottom className="flex-1 overflow-hidden relative" initial="smooth" resize="smooth">
+      <StickToBottom.Content
+        className="h-full overflow-y-auto"
+        style={{ backgroundColor: user?.wallpaper || "transparent" }}
       >
-        <div className="w-full max-w-6xl mx-auto h-full flex flex-col px-3 py-4">
+        <div className="w-full max-w-6xl mx-auto flex flex-col px-3 py-4 min-h-full">
           {messages?.filter(Boolean).map((message) => (
             <ChatBodyMessage
-              key={message._id}
+              key={message?._id}
               message={message}
               onReply={onReply}
               isGroup={isGroup}
             />
           ))}
-          <div ref={bottomRef} className="h-4 w-full" />
         </div>
-      </div>
-    </div>
+      </StickToBottom.Content>
+    </StickToBottom>
   );
 };
 
