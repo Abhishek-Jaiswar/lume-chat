@@ -52,7 +52,15 @@ app.use('/api', router)
 
 app.use(errorHandler);
 
-server.listen(Env.PORT, async () => {
-  await connectToDatabase();
-  console.log(`Server is listening on port: http://localhost:${Env.PORT}`);
-});
+(async () => {
+  try {
+    await connectToDatabase();
+    server.listen(Env.PORT, () => {
+      console.log(`Server running on http://localhost:${Env.PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to connect to DB", error);
+    process.exit(1);
+  }
+})();
+

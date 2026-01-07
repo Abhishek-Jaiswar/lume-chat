@@ -52,7 +52,7 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
   return (
     <div
       className={cn(
-        "group flex w-full gap-2 py-3 px-4 hover:bg-muted/5 transition-colors",
+        "group flex w-full gap-2 py-3 px-4 hover:bg-muted/5 transition-colors bg-green-400!",
         isCurrentUser ? "flex-reverse" : "flex-row"
       )}
     >
