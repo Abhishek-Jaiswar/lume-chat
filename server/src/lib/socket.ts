@@ -206,3 +206,15 @@ export const emitChatAI = ({
     return;
   }
 };
+
+export const emitChatDeleted = (participantIds: string[], chatId: string) => {
+  const io = getIO();
+  for (const participantId of participantIds) {
+    io.to(`user:${participantId}`).emit("chat:deleted", { chatId });
+  }
+};
+
+export const emitMessageDeleted = (chatId: string, messageId: string) => {
+  const io = getIO();
+  io.to(`chat:${chatId}`).emit("message:deleted", { chatId, messageId });
+};

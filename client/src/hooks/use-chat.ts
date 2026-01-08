@@ -31,14 +31,18 @@ interface IChat {
   sendMessage: (payload: CreateMessageType, isAiChat: boolean) => void;
   fetchSingleChat: (chatId: string) => Promise<void>;
   addNewChat: (newChat: ChatType) => void;
-  updateChatLastMessage: (chatId: string, lastMessage: MessageType) => void;
-  addNewMessage: (chatId: string, message: MessageType, tempId: string) => void;
+  updateChatLastMessage: (chatId: string, lastMessage: MessageType | null) => void;
+  addNewMessage: (chatId: string, message: MessageType, tempId?: string) => void;
 
   addOrUpdateChatMessage: (
     chatId: string,
     message: MessageType,
     tempId?: string
   ) => void;
+  deleteChat: (chatId: string) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
+  removeChat: (chatId: string) => void;
+  removeMessage: (chatId: string, messageId: string) => void;
   handleAiStream: (payload: {
     chatId: string;
     chunk: string | null;
@@ -216,7 +220,7 @@ export const useChat = create<IChat>()((set, get) => ({
       if (!chat) return state;
       return {
         chats: [
-          { ...chat, lastMessage },
+          { ...chat, lastMessage: lastMessage as MessageType },
           ...state.chats.filter((c) => c._id !== chatId),
         ],
       };
@@ -311,5 +315,52 @@ export const useChat = create<IChat>()((set, get) => ({
         singleChat: { ...singleChat, messages: updatedMessages },
       });
     }
+  },
+
+  deleteChat: async (chatId: string) => {
+    try {
+      await API.delete(`/chat/${chatId}`);
+      get().removeChat(chatId);
+    } catch (error) {
+      const err = handleApiError(error);
+      console.error("Delete chat failed:", err.message);
+      throw err;
+    }
+  },
+
+  deleteMessage: async (messageId: string) => {
+    try {
+      await API.delete(`/chat/message/${messageId}`);
+      // Local removal will be handled by message:deleted socket event or manually if needed
+      // But for better UX we can find the chatId and remove it immediately
+      const chatId = get().singleChat?.chat._id;
+      if (chatId) {
+        get().removeMessage(chatId, messageId);
+      }
+    } catch (error) {
+      const err = handleApiError(error);
+      console.error("Delete message failed:", err.message);
+      throw err;
+    }
+  },
+
+  removeChat: (chatId: string) => {
+    set((state) => ({
+      chats: state.chats.filter((c) => c._id !== chatId),
+      singleChat:
+        state.singleChat?.chat._id === chatId ? null : state.singleChat,
+    }));
+  },
+
+  removeMessage: (chatId: string, messageId: string) => {
+    const singleChat = get().singleChat;
+    if (!singleChat || singleChat.chat._id !== chatId) return;
+
+    set({
+      singleChat: {
+        ...singleChat,
+        messages: singleChat.messages.filter((m) => m._id !== messageId),
+      },
+    });
   },
 }));

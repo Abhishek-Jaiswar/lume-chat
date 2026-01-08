@@ -4,9 +4,11 @@ import { chatIdSchema, createChatSchema } from "../validators/chat.validator";
 import { HTTPSTATUS } from "../config/http.config";
 import {
   createChatService,
+  deleteChatService,
   getSingleChatService,
   getUserChatService,
 } from "../services/chat.service";
+import { emitChatDeleted } from "../lib/socket";
 
 export const createChatController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -47,6 +49,22 @@ export const getSingleChatController = asyncHandler(
       message: "User chats retrived successfully",
       chat,
       messages,
+    });
+  }
+);
+
+export const deleteChatController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+    const { id } = chatIdSchema.parse(req.params);
+
+    const { participantIds, chatId } = await deleteChatService(id, userId);
+
+    emitChatDeleted(participantIds, chatId);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Chat deleted successfully",
+      success: true,
     });
   }
 );

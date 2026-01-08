@@ -140,3 +140,18 @@ export const validateChatParticipants = async (
   if (!chat) throw new BadRequestException("User not a participant in chat.");
   return chat;
 };
+
+export const deleteChatService = async (chatId: string, userId: string) => {
+  const chat = await validateChatParticipants(chatId, userId);
+
+  // Delete all messages in the chat
+  await Message.deleteMany({ chatId });
+
+  // Delete the chat itself
+  await Chat.findByIdAndDelete(chatId);
+
+  // Notify participants via socket
+  const participantIds = chat.participants.map((id) => id.toString());
+  // We'll implement emitChatDeleted next
+  return { participantIds, chatId };
+};

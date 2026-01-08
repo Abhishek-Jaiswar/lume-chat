@@ -26,7 +26,7 @@ export const updateUserService = async (
 
   if (name) user.name = name;
   if (about) user.about = about;
-  if (wallpaper) user.wallpaper = wallpaper;
+  if (wallpaper !== undefined) user.wallpaper = wallpaper;
 
   if (avatar) {
     const uploadRes = await cloudinary.uploader.upload(avatar, {

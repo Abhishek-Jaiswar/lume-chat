@@ -195,3 +195,48 @@ const getChatHistory = async (chatId: string) => {
 
   return messages.reverse(); // Return in chronological order
 };
+export const deleteMessageService = async (
+  userId: string,
+  messageId: string
+) => {
+  const message = await Message.findById(messageId);
+  if (!message) throw new NotFoundException("Message not found");
+
+  // Only the sender can delete the message
+  if (message.sender.toString() !== userId) {
+    throw new BadRequestException("Unauthorized to delete this message");
+  }
+
+  const chatId = message.chatId;
+  const chat = await Chat.findById(chatId);
+  if (!chat) throw new NotFoundException("Chat not found");
+
+  await Message.findByIdAndDelete(messageId);
+
+  // If the deleted message was the lastMessage, update the chat
+  if (chat.lastMessage?.toString() === messageId) {
+    const previousMessage = await Message.findOne({ chatId })
+      .sort({ createdAt: -1 })
+      .select("_id");
+    chat.lastMessage = previousMessage
+      ? (previousMessage._id as mongoose.Types.ObjectId)
+      : null;
+    await chat.save();
+
+    if (previousMessage) {
+      await previousMessage.populate({
+        path: "sender",
+        select: "name avatar",
+      });
+    }
+
+    const allParticipantIds = chat.participants.map((id) => id.toString());
+    emitLastMessageToParticipants(
+      allParticipantIds,
+      chatId.toString(),
+      previousMessage
+    );
+  }
+
+  return { chatId: chatId.toString(), messageId };
+};

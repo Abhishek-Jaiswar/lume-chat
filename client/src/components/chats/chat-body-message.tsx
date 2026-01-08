@@ -5,7 +5,15 @@ import { memo, useState } from "react";
 import AvatarWithBadge from "../avatar-with-badge";
 import { formatChatTime } from "@/lib/helper";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { Spinner } from "../ui/spinner";
 import {
   ReplyIcon,
@@ -14,7 +22,10 @@ import {
   ClockIcon,
   ImageIcon,
   ExternalLinkIcon,
+  Trash2Icon,
 } from "lucide-react";
+import { Response } from "../ui/ai-response";
+import { useChat } from "@/hooks/use-chat";
 
 interface Props {
   message: MessageType;
@@ -29,6 +40,22 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+
+  const { deleteMessage } = useChat();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteMessage(message._id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const replySenderName =
     message.replyTo?.sender?._id === userId
@@ -52,11 +79,16 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
   return (
     <div
       className={cn(
-        "group flex w-full gap-2 py-3 px-4 hover:bg-muted/5 transition-colors bg-green-400!",
-        isCurrentUser ? "flex-reverse" : "flex-row"
+        "group flex w-full py-2 px-4 hover:bg-muted/5 transition-colors",
+        isCurrentUser ? "justify-end" : "justify-start"
       )}
     >
-      <div className={cn("flex max-w-[85%] gap-3", isCurrentUser && "ml-auto flex-row-reverse")}>
+      <div
+        className={cn(
+          "flex max-w-[85%] gap-3",
+          isCurrentUser && "flex-row-reverse"
+        )}
+      >
         {!isCurrentUser && (
           <AvatarWithBadge
             name={message.sender?.name || ""}
@@ -66,7 +98,12 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
           />
         )}
 
-        <div className={cn("flex flex-col gap-2 relative", isCurrentUser ? "items-end" : "items-start")}>
+        <div
+          className={cn(
+            "flex flex-col gap-2 relative",
+            isCurrentUser ? "items-end" : "items-start"
+          )}
+        >
           <div
             className={cn(
               "relative px-4 py-2.5 shadow-sm transition-colors max-w-full",
@@ -88,14 +125,16 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
             {message.replyTo && (
               <div
                 className={cn(
-                  "mb-3 p-2.5 text-[11px] rounded-xl border-l-4 bg-black/5 dark:bg-white/5",
-                  isCurrentUser ? "border-white/40" : "border-primary/40"
+                  "mb-3 p-2.5 text-[12px] rounded-lg border-l-4 bg-background/20 backdrop-blur-sm max-w-md",
+                  isCurrentUser
+                    ? "border-primary-foreground/40 text-primary-foreground"
+                    : "border-primary/40 text-muted-foreground bg-primary/5"
                 )}
               >
-                <div className="font-bold opacity-100 mb-1">
+                <div className="font-bold mb-0.5 text-xs">
                   {replySenderName}
                 </div>
-                <div className="opacity-90 flex items-center gap-1.5 italic">
+                <div className="flex items-center gap-1.5 italic line-clamp-2">
                   {message.replyTo.image && (
                     <ImageIcon size={12} className="shrink-0" />
                   )}
@@ -121,7 +160,9 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
                         <div className="flex items-center justify-center w-56 h-36 bg-muted/40 rounded-xl">
                           <div className="flex flex-col items-center gap-2 text-muted-foreground">
                             <ImageIcon size={24} />
-                            <span className="text-[10px]">Image unavailable</span>
+                            <span className="text-[10px]">
+                              Image unavailable
+                            </span>
                           </div>
                         </div>
                       ) : (
@@ -143,7 +184,10 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
                       {!imageError && !imageLoading && (
                         <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover/image:opacity-100">
                           <div className="bg-background/80 p-2 rounded-full shadow-lg backdrop-blur-xs">
-                            <ExternalLinkIcon size={18} className="text-foreground" />
+                            <ExternalLinkIcon
+                              size={18}
+                              className="text-foreground"
+                            />
                           </div>
                         </div>
                       )}
@@ -164,11 +208,21 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
             {message.content && (
               <div
                 className={cn(
-                  "text-[15px] leading-relaxed whitespace-pre-wrap break-words",
+                  "text-[15px] leading-relaxed wrap-break-word overflow-hidden",
                   isCurrentUser ? "text-primary-foreground" : "text-foreground"
                 )}
               >
-                {message.content}
+                {message.sender?.isAi ? (
+                  <Response
+                    className={cn(
+                      isCurrentUser && "prose-invert"
+                    )}
+                  >
+                    {message.content}
+                  </Response>
+                ) : (
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                )}
               </div>
             )}
 
@@ -200,8 +254,8 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
           {/* Inline Actions */}
           <div
             className={cn(
-              "opacity-0 group-hover:opacity-100 transition-opacity absolute top-1/2 -translate-y-1/2",
-              isCurrentUser ? "-left-11" : "-right-11"
+              "opacity-0 group-hover:opacity-100 transition-opacity absolute top-1/2 -translate-y-1/2 flex items-center gap-1",
+              isCurrentUser ? "-left-20" : "-right-20"
             )}
           >
             <Button
@@ -212,6 +266,48 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
             >
               <ReplyIcon size={14} className="text-muted-foreground" />
             </Button>
+
+            {isCurrentUser && (
+              <Dialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 rounded-full bg-background/50 hover:bg-destructive/10 hover:text-destructive border shadow-xs backdrop-blur-sm"
+                    disabled={isDeleting}
+                  >
+                    <Trash2Icon size={14} />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Message?</DialogTitle>
+                    <DialogDescription>
+                      This will permanently delete this message for you. This
+                      action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setShowDeleteDialog(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
       </div>

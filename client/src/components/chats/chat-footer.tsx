@@ -109,21 +109,29 @@ const ChatFooter = ({
   };
 
   return (
-    <>
-      <div className="z-50 border-t border-border py-4 sticky bottom-0 bg-background/80 backdrop-blur-sm">
+    <div className="z-50 sticky bottom-0 bg-background/80 backdrop-blur-sm border-t border-border">
+      {replyTo && !isSendingMsg && (
+        <ChatReplyBar
+          replyTo={replyTo}
+          currentUserId={currentUserId}
+          onCancel={onCancelReply}
+        />
+      )}
+
+      <div className="py-4">
         {image && !isSendingMsg && (
-          <div className="px-8.5 ">
+          <div className="px-8.5 mb-3">
             <div className="relative w-fit">
               <img
                 src={image}
                 alt=""
-                className="object-contain h-16 bg-muted min-w-16"
+                className="object-contain h-16 bg-muted min-w-16 rounded-md border border-border/40"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className=" absolute top-1 right-1 bg-black/50 text-white rounded-full"
+                className="absolute -top-2 -right-2 size-5 bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full shadow-lg"
                 onClick={handleRemoveImage}
                 disabled={isSendingMsg}
               >
@@ -139,18 +147,18 @@ const ChatFooter = ({
               e.preventDefault();
               form.handleSubmit(onSubmit)();
             }}
-            className="px-8.5  flex gap-2"
+            className="px-8.5 flex gap-2"
           >
             <div className="flex items-end gap-1.5">
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                className="rounded-sm shrink-0"
+                className="rounded-lg shrink-0 h-10 w-10 border-border/40 hover:bg-muted/50 transition-colors"
                 onClick={() => imageInputRef.current?.click()}
                 disabled={isSendingMsg}
               >
-                <Paperclip className="h-4 w-4" />
+                <Paperclip className="h-4.5 w-4.5 text-muted-foreground" />
               </Button>
               <input
                 type="file"
@@ -172,7 +180,7 @@ const ChatFooter = ({
                     ref={textareaRef}
                     autoComplete="off"
                     placeholder="Type new message"
-                    className="bg-background min-h-10 max-h-32 resize-none overflow-hidden"
+                    className="bg-muted/30 border-border/40 min-h-10 max-h-32 resize-none overflow-hidden focus-visible:ring-1 focus-visible:ring-primary/20 transition-all rounded-xl py-2.5"
                     disabled={isSendingMsg}
                     onChange={handleTextareaChange}
                     onKeyDown={handleKeyDown}
@@ -184,27 +192,19 @@ const ChatFooter = ({
             <Button
               type="submit"
               size="icon"
-              className="rounded-lg cursor-pointer shrink-0 self-end"
+              className="rounded-xl cursor-pointer shrink-0 self-end h-10 w-10 bg-primary hover:bg-primary/90 shadow-md shadow-primary/10 transition-all active:scale-95"
               disabled={isSendingMsg}
             >
               {isSendingMsg ? (
-                <Spinner className="h-3.5 w-3.5" />
+                <Spinner className="h-4 w-4" />
               ) : (
-                <Send className="h-3.5 w-3.5" />
+                <Send className="h-4 w-4" />
               )}
             </Button>
           </form>
         </Form>
       </div>
-
-      {replyTo && !isSendingMsg && (
-        <ChatReplyBar
-          replyTo={replyTo}
-          currentUserId={currentUserId}
-          onCancel={onCancelReply}
-        />
-      )}
-    </>
+    </div>
   );
 };
 

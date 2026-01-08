@@ -2,7 +2,7 @@ import type { TUser } from "./auth.types";
 
 export type ChatType = {
   _id: string;
-  lastMessage: MessageType;
+  lastMessage: MessageType | null;
   participants: TUser[];
   isGroup: boolean;
   isAiChat: boolean;

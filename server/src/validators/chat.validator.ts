@@ -11,5 +11,10 @@ export const chatIdSchema = z.object({
   id: z.string(),
 });
 
+export const messageIdSchema = z.object({
+  messageId: z.string(),
+});
+
 export type CreateChatBody = z.infer<typeof createChatSchema>;
 export type ChatIdSchemaType = z.infer<typeof chatIdSchema>;
+export type MessageIdSchemaType = z.infer<typeof messageIdSchema>;
