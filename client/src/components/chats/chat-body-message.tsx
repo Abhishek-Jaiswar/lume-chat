@@ -125,7 +125,7 @@ export const ChatBodyMessage = memo(({ message, onReply }: Props) => {
             {message.replyTo && (
               <div
                 className={cn(
-                  "mb-3 p-2.5 text-[12px] rounded-lg border-l-4 bg-background/20 backdrop-blur-sm max-w-md",
+                  "mb-3 p-2.5 text-[12px] rounded-lg border-l-4 bg-background/20 backdrop-blur-sm max-w-40 md:max-w-md",
                   isCurrentUser
                     ? "border-primary-foreground/40 text-primary-foreground"
                     : "border-primary/40 text-muted-foreground bg-primary/5"

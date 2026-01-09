@@ -28,12 +28,10 @@ const Sidebar = () => {
   return (
     <div className="flex h-screen fixed left-0 top-0 z-50">
       {/* Mini Sidebar (Rail) */}
-      <aside className="w-14 flex flex-col border-r border-border bg-sidebar shrink-0 items-center py-4 gap-4">
-        <Logo
-          url={PROTECTED_ROUTES.CHAT}
-          imgClass="size-8"
-          showText={false}
-        />
+      <aside
+        className={`flex flex-col border-r border-border bg-sidebar shrink-0 items-center py-4 gap-4`}
+      >
+        <Logo url={PROTECTED_ROUTES.CHAT} imgClass="size-8" showText={false} />
 
         <div className="flex-1" />
 
@@ -71,14 +69,12 @@ const Sidebar = () => {
                 />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-56"
-              side="right"
-              align="end"
-            >
+            <DropdownMenuContent className="w-56" side="right" align="end">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name}
+                  </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user?.email}
                   </p>

@@ -8,7 +8,7 @@ import { useChat } from "@/hooks/use-chat";
 import useChatId from "@/hooks/use-chat-id";
 import { useSocket } from "@/hooks/use-socket";
 import type { MessageType } from "@/types/chat-types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const SignleChat = () => {
   const chatId = useChatId();

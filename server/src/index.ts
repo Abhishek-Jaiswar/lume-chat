@@ -13,6 +13,7 @@ import { connectToDatabase } from "./config/database.config";
 import "./config/passport.config";
 import router from "./routes";
 import { initilizeSocket } from "./lib/socket";
+import path from "path";
 
 const app = express();
 const server = http.createServer(app)
@@ -50,6 +51,15 @@ app.get("/api/test-route", (req, res) => res.json({ status: "ok", message: "API 
 
 app.use('/api', router)
 
+if (Env.NODE_ENV === "production" ) {
+  const clientPath = path.resolve(__dirname, '../../client/dist');
+  app.use(express.static(clientPath));
+
+  app.get(/^(?!\/api).*/, (req: Request, res: Response) => {
+    res.sendFile(path.join(clientPath, 'index.html'))
+  });
+}
+
 app.use(errorHandler);
 
 (async () => {
@@ -59,7 +69,7 @@ app.use(errorHandler);
       console.log(`Server running on http://localhost:${Env.PORT}`);
     });
   } catch (error) {
-    console.error("❌ Failed to connect to DB", error);
+    console.error(" Failed to connect to DB", error);
     process.exit(1);
   }
 })();
